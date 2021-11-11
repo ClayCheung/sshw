@@ -14,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/yinheli/sshw/utils/yaml"
+
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -132,6 +134,7 @@ func (c *defaultClient) Login() {
 	host := c.node.Host
 	port := strconv.Itoa(c.node.port())
 	jNodes := c.node.Jump
+	fetchKubeConf := c.node.Kube
 
 	var client *ssh.Client
 
@@ -182,6 +185,21 @@ func (c *defaultClient) Login() {
 	defer client.Close()
 
 	l.Infof("connect server ssh -p %d %s@%s version: %s\n", c.node.port(), c.node.user(), host, string(client.ServerVersion()))
+
+	// fetch kubeconfig
+	if fetchKubeConf != "" {
+		preSession, err := client.NewSession()
+		if err != nil {
+			l.Error(err)
+			return
+		}
+		defer preSession.Close()
+		kubeconf, _ := preSession.Output(`cat ~/.kube/config`)
+		err = yaml.SetNewCluster(kubeconf, host, fetchKubeConf)
+		if err != nil {
+			l.Error(err)
+		}
+	}
 
 	session, err := client.NewSession()
 	if err != nil {

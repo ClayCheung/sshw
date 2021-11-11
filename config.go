@@ -16,14 +16,17 @@ import (
 )
 
 type Node struct {
-	Name           string           `yaml:"name"`
-	Alias          string           `yaml:"alias"`
-	Host           string           `yaml:"host"`
-	User           string           `yaml:"user"`
-	Port           int              `yaml:"port"`
-	KeyPath        string           `yaml:"keypath"`
-	Passphrase     string           `yaml:"passphrase"`
-	Password       string           `yaml:"password"`
+	Name       string `yaml:"name"`
+	Alias      string `yaml:"alias"`
+	Host       string `yaml:"host"`
+	User       string `yaml:"user"`
+	Port       int    `yaml:"port"`
+	KeyPath    string `yaml:"keypath"`
+	Passphrase string `yaml:"passphrase"`
+	Password   string `yaml:"password"`
+	// TODO add A record to /etc/hosts
+	Domain         string           `yaml:"domain"`
+	Kube           string           `yaml:"kube"`
 	CallbackShells []*CallbackShell `yaml:"callback-shells"`
 	Children       []*Node          `yaml:"children"`
 	Jump           []*Node          `yaml:"jump"`
