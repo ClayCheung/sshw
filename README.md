@@ -55,6 +55,21 @@ config example:
   - { name: server 1, user: root, host: 192.168.2.2 }
   - { name: server 2, user: root, host: 192.168.3.3 }
   - { name: server 3, user: root, host: 192.168.4.4 }
+  
+# For K8S Cluster
+# first feature: if host set like 192.168.1.2(dev.harbor.io), it will login by 192.168.1.2,
+# and set `192.168.1.2 dev.harbor.io` in `/etc/hosts` (after you use `sudo sshw` to login)
+#
+# second feature: if set `kube: xxx`, it will fetch kubeConfig on remote server, 
+# and set it on local kubeConfig, so you can use `kubectl --context=xxx` to access remote k8s cluster
+- name: k8s-dev
+  children:
+    - { name: registry, user: root, host: 192.168.1.2(dev.harbor.io), password: 123456 }
+    - { name: master-1, user: root, host: 192.168.1.3, password: 123456, kube: k8s-dev }
+    - { name: master-2, user: root, host: 192.168.1.4, password: 123456 }
+    - { name: master-3, user: root, host: 192.168.1.5, password: 123456 }
+    - { name: node-1, user: root, host: 192.168.1.6, password: 123456 }
+    - { name: node-2, user: root, host: 192.168.1.7, password: 123456 }
 ```
 
 # callback
