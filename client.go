@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/yinheli/sshw/utils"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -129,9 +130,34 @@ func NewClient(node *Node) Client {
 }
 
 func (c *defaultClient) Login() {
-	host := c.node.Host
+	var (
+		host, domain string
+	)
+
+	address, err := parseHost(c.node.Host)
+	if err != nil {
+		l.Error(err)
+		host = c.node.Host
+	}
+	if len(address) == 2 {
+		host = address[0]
+		domain = address[1]
+	} else {
+		host = c.node.Host
+	}
+
 	port := strconv.Itoa(c.node.port())
 	jNodes := c.node.Jump
+	fetchKubeConf := c.node.Kube
+
+
+	// set local DNS in /etc/hosts
+	if domain != "" {
+		err = utils.SetLocalDNS(host, domain )
+		if err != nil {
+			l.Errorf("%+v. try use sudo sshw if you want to edit /etc/hosts", err)
+		}
+	}
 
 	var client *ssh.Client
 
@@ -182,6 +208,21 @@ func (c *defaultClient) Login() {
 	defer client.Close()
 
 	l.Infof("connect server ssh -p %d %s@%s version: %s\n", c.node.port(), c.node.user(), host, string(client.ServerVersion()))
+
+	// fetch kubeconfig
+	if fetchKubeConf != "" {
+		preSession, err := client.NewSession()
+		if err != nil {
+			l.Error(err)
+			return
+		}
+		defer preSession.Close()
+		kubeconf, _ := preSession.Output(`cat ~/.kube/config`)
+		err = utils.SetNewCluster(kubeconf, host, fetchKubeConf)
+		if err != nil {
+			l.Error(err)
+		}
+	}
 
 	session, err := client.NewSession()
 	if err != nil {
@@ -277,4 +318,16 @@ func (c *defaultClient) Login() {
 	}()
 
 	session.Wait()
+}
+
+// parseHost return host[0] is ip, host[1] is domain
+func parseHost(hostStr string) (host []string, err error) {
+	host = strings.Split(hostStr, `(`)
+	if len(host) > 2 {
+		return nil, fmt.Errorf("too much ( in host")
+	}
+	if len(host) == 2 {
+		host[1] = strings.TrimSuffix(host[1], `)`)
+	}
+	return host, nil
 }

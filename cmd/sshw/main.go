@@ -14,7 +14,7 @@ import (
 const prev = "-parent-"
 
 var (
-	Build = "devel"
+	Build = "v1.2.0-forK8S"
 	V     = flag.Bool("version", false, "show version")
 	H     = flag.Bool("help", false, "show help")
 	S     = flag.Bool("s", false, "use local ssh config '~/.ssh/config'")
