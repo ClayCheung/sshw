@@ -23,11 +23,12 @@ func homePath() string {
 }
 
 type KubeConfig struct {
-	ApiVersion string        `yaml:"apiVersion"`
-	Kind       string        `yaml:"kind"`
-	Clusters   []ClusterItem `yaml:"clusters"`
-	Contexts   []ContextItem `yaml:"contexts"`
-	Users      []UserItem    `yaml:"users"`
+	ApiVersion     string        `yaml:"apiVersion"`
+	Kind           string        `yaml:"kind"`
+	CurrentContext string        `yaml:"current-context"`
+	Clusters       []ClusterItem `yaml:"clusters"`
+	Contexts       []ContextItem `yaml:"contexts"`
+	Users          []UserItem    `yaml:"users"`
 }
 
 type ClusterItem struct {
@@ -183,5 +184,6 @@ func setNewCluster(newCluster, kc *KubeConfig) error {
 	kc.Users = append(kc.Users, newCluster.Users[0])
 	kc.Clusters = append(kc.Clusters, newCluster.Clusters[0])
 	kc.Contexts = append(kc.Contexts, newCluster.Contexts[0])
+	kc.CurrentContext = newCluster.Contexts[0].Name
 	return nil
 }
